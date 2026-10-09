@@ -1,0 +1,44 @@
+name: Custom Build - Avoid Features
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: Configure CMake
+      run: cmake -B build -A x64
+      
+    - name: Build
+      run: cmake --build build --config Release --parallel
+      
+    - name: Package
+      run: |
+        mkdir TClient-Avoid-Features
+        copy build\Release\TClient.exe TClient-Avoid-Features\
+        copy AVOID_FEATURES.md TClient-Avoid-Features\
+        copy BUILD_INSTRUCTIONS_TR.md TClient-Avoid-Features\
+        
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: TClient-Windows-AvoidFeatures
+        path: TClient-Avoid-Features/
